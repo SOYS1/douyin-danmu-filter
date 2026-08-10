@@ -1,0 +1,67 @@
+# Douyin Purifier
+
+A Chrome extension (Manifest V3) that filters danmaku comments on the Douyin web player using regular expressions. Filtered comments are hidden in real time, and changes take effect immediately after saving. Settings are synced across tabs and devices through `chrome.storage.sync`.
+
+## Features
+
+- Real-time filtering: a `MutationObserver` watches newly added DOM nodes, so comments loaded during infinite scrolling are handled as soon as they appear
+- Regex rules: plain text is matched case-insensitively, and full `/pattern/flags` syntax is also supported
+- Preview: the popup shows which comments would be filtered; it prefers real comments from the current page and falls back to sample comments when no page data is available
+- Status and stats: shows how many comments have been filtered on the current page, with a master switch and a separate danmaku switch
+- Settings sync: saved settings apply immediately, and sync automatically to other open Douyin tabs and other devices on the same account
+- SPA support: the observer is recreated and the page rescanned when Douyin navigates to a new route
+
+## Files
+
+| File | Description |
+| --- | --- |
+| `manifest.json` | Extension manifest with permissions and injection scope |
+| `content.js` | Content script that filters danmaku, tracks stats, and observes dynamic content |
+| `popup.html` | Settings popup UI |
+| `popup.js` | Popup logic for loading, validating, and saving settings plus preview rendering |
+| `test_content.js` | Smoke test for the content script |
+| `test_popup.js` | Smoke test for the popup logic |
+
+## Installation
+
+1. Open `chrome://extensions` (or `edge://extensions` in Microsoft Edge)
+2. Enable Developer Mode in the top-right corner
+3. Click "Load unpacked"
+4. Select this project directory
+5. Open the Douyin web player at `https://www.douyin.com`
+
+## Usage
+
+1. Click the Douyin Purifier icon in the browser toolbar
+2. Enter a regular expression, for example `广告|推广|抽奖|扫码`
+3. Click "Save Settings"; filtering takes effect immediately
+
+### Regex syntax
+
+| Input | Meaning |
+| --- | --- |
+| `广告` | Matches comments containing "广告", case-insensitive |
+| `广告\|推广` | Matches "广告" or "推广" |
+| `/广告/g` | Full regex syntax with the flags you specify |
+
+- Leave the field empty to disable danmaku filtering
+- Supported flags in full syntax: `d`, `g`, `i`, `m`, `s`, `u`, `v`, `y`
+- Invalid regular expressions never match anything and do not affect other filtering behavior
+
+## Tests
+
+The tests use only Node.js built-in modules and require no dependencies:
+
+```powershell
+node test_content.js
+node test_popup.js
+```
+
+On success they print `FILTER_TEST_OK` and `POPUP_TEST_OK` respectively.
+
+## Permissions
+
+- `storage`: stores and syncs filter settings
+- `activeTab`: sends settings updates and stats requests to the Douyin page in the current tab
+
+The content script is injected only into `*.douyin.com/*` pages and does not run on any other website.
