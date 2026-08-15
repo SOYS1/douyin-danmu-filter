@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
 <title>弹幕屏蔽正则生成器</title>
 <link rel="stylesheet" href="generator_styles.css">
 <style>
@@ -49,6 +50,36 @@
   .row-ctrl .seg.active { background: var(--accent); color: #fff; }
   .js-fill-config { background: linear-gradient(135deg, #00d26a, #00a854); color: #fff; border: none; }
   .js-fill-config:hover { opacity: 0.85; }
+
+  /* topbar adapts to theme via CSS variables */
+  .topbar { background: rgba(15,15,15,.92); border-bottom-color: var(--border); }
+  .steps a.active { border-color: var(--border-strong); }
+  .section-head .stepnum { border-color: var(--border-strong); }
+  /* light-mode override for users with system light preference */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f4f6f8; --surface: #ffffff; --surface-2: #f7f9fb;
+      --border: #e2e6ec; --border-strong: #cdd4dc;
+      --text: #1f2530; --text-2: #5a6473; --text-3: #93a0ae;
+      --accent: #0d7d72; --accent-2: #0a645c; --accent-soft: #e0f1ee;
+      --danger: #c6373a; --danger-soft: #fbe6e5;
+      --success: #138a52; --success-soft: #e3f4ea;
+    }
+    .topbar { background: rgba(255,255,255,.92); }
+    textarea { background: var(--surface-2); color: var(--text); }
+    .btn.primary { background: linear-gradient(135deg,#ff0050,#ff6b6b); color:#fff; }
+    .btn.ghost { background: var(--surface); color: var(--text-2); border-color: var(--border-strong); }
+    .icopy { background: var(--surface); color: var(--text-2); border-color: var(--border-strong); }
+    .char { background: var(--surface); color: var(--text); border-color: var(--border); }
+    .char.sel { background: var(--accent); color: #fff; }
+    .trow.blocked { background: var(--danger-soft); }
+    .trow.passed { background: var(--success-soft); }
+    .rl,.perrow { background: var(--surface-2); }
+    .chip { background: var(--surface); border-color: var(--border); color: var(--text); }
+    .chip-suggest .chip { background: var(--surface-2); }
+    .row-ctrl .seg.active { background: var(--accent); color:#fff; }
+    #confirmEmpty { border-color: var(--border); }
+  }
 </style>
 </head>
 <body>

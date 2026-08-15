@@ -10,7 +10,7 @@ A Chrome extension (Manifest V3) that filters danmaku comments on the Douyin web
 - Status and stats: shows how many comments have been filtered on the current page, with a master switch and a separate danmaku switch
 - Settings sync: saved settings apply immediately, and sync automatically to other open Douyin tabs and other devices on the same account
 - SPA support: the observer is recreated and the page rescanned when Douyin navigates to a new route
-- **Regex Generator**: a built-in three-step tool that suggests shield words from your input danmaku, lets you confirm them with clicks, previews the regex live, and writes it straight into extension storage
+- **Regex Generator**: a built-in three-step tool that suggests shield words from your input danmaku, lets you confirm them with clicks, previews the regex live, and writes it straight into extension storage — supports both dark and light color schemes
 
 ## Files
 
@@ -18,14 +18,12 @@ A Chrome extension (Manifest V3) that filters danmaku comments on the Douyin web
 | --- | --- |
 | `manifest.json` | Extension manifest with permissions and injection scope |
 | `content.js` | Content script that filters danmaku, tracks stats, and observes dynamic content |
-| `popup.html` | Settings popup UI |
+| `popup.html` | Settings popup UI (dark theme) |
 | `popup.js` | Popup logic for loading, validating, and saving settings plus preview rendering |
-| `generator.html` | Regex generator page |
+| `generator.html` | Regex generator page (dark/light theme support) |
 | `generator_app.js` | Generator UI interaction logic |
-| `generator_styles.css` | Generator styles (dark theme) |
+| `generator_styles.css` | Generator base styles |
 | `core.js` | Shared core logic (regex compilation, candidate suggestions, match testing) |
-| `test_content.js` | Smoke test for the content script |
-| `test_popup.js` | Smoke test for the popup logic |
 
 ## Installation
 
