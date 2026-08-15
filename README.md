@@ -2,7 +2,7 @@
 
 按正则过滤抖音网页版弹幕的 Chrome 扩展（Manifest V3）。弹幕会实时隐藏，设置保存后立即生效，并通过 `chrome.storage.sync` 在标签页和设备间同步。
 
-[English](README-en.md)
+中文 | [English](README-en.md)
 
 ## 功能
 
