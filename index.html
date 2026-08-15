@@ -4,187 +4,419 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark">
-<meta name="description" content="按正则过滤抖音网页版弹幕的 Chrome 扩展，内置智能正则生成器">
-<title>抖音净化器 — 弹幕正则过滤扩展</title>
+<meta name="description" content="抖音净化器 — 用正则精确过滤抖音网页版弹幕，内置智能正则生成器">
+<title>抖音净化器</title>
 <style>
-  :root {
-    --bg: #0f0f0f;
-    --surface: #1a1a1a;
-    --surface-2: #141414;
-    --border: #2a2a2a;
-    --border-strong: #333;
-    --text: #f1f1f1;
-    --text-2: #888;
-    --text-3: #555;
-    --accent: #ff0050;
-    --accent-2: #ff6b6b;
-    --accent-soft: rgba(255,0,80,0.1);
-    --success: #00d26a;
-    --success-soft: rgba(0,210,106,0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; }
-  a { color: var(--accent-2); text-decoration: none; }
-  a:hover { text-decoration: underline; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  /* nav */
-  nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); }
-  nav .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; }
-  nav .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg, #ff0050, #ff6b6b); border-radius: 8px; display: grid; place-items: center; font-size: 14px; color: #fff; font-weight: bold; }
-  nav .nav-links { display: flex; gap: 20px; font-size: 14px; color: var(--text-2); }
-  nav .nav-links a { color: var(--text-2); }
-  nav .nav-links a:hover { color: var(--text); text-decoration: none; }
-  nav .btn-install { background: linear-gradient(135deg, #ff0050, #ff6b6b); color: #fff; border: none; padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
-  nav .btn-install:hover { opacity: 0.85; text-decoration: none; }
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-2: #1a1a1a;
+  --border: #222;
+  --border-strong: #333;
+  --text: #f1f1f1;
+  --text-2: #888;
+  --text-3: #555;
+  --accent: #ff0050;
+  --accent-2: #ff6b6b;
+  --accent-soft: rgba(255,0,80,0.12);
+  --success: #00d26a;
+}
 
-  /* hero */
-  .hero { padding: 80px 24px 60px; text-align: center; max-width: 720px; margin: 0 auto; }
-  .hero h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1.2; }
-  .hero h1 span { background: linear-gradient(135deg, #ff0050, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .hero p { font-size: 17px; color: var(--text-2); margin-bottom: 32px; max-width: 560px; margin-left: auto; margin-right: auto; }
-  .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .hero-actions .btn { display: inline-flex; align-items: center; gap: 8px; padding: 11px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: opacity .15s; }
-  .hero-actions .btn:hover { opacity: 0.9; text-decoration: none; }
-  .btn-primary { background: linear-gradient(135deg, #ff0050, #ff6b6b); color: #fff; }
-  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
-  .badge { display: inline-block; font-size: 12px; font-weight: 600; color: var(--accent-2); background: var(--accent-soft); border: 1px solid rgba(255,0,80,0.25); padding: 3px 10px; border-radius: 999px; margin-bottom: 16px; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-  /* sections */
-  section { padding: 60px 24px; max-width: 1080px; margin: 0 auto; }
-  section h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-  section .subtitle { color: var(--text-2); font-size: 15px; margin-bottom: 32px; }
 
-  /* features */
-  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-  .feature-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-  .feature-card p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
 
-  /* demo / generator embed */
-  .demo-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-  .demo-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
-  .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .demo-dot.r { background: #ff5f57; }
-  .demo-dot.y { background: #ffbd2e; }
-  .demo-dot.g { background: #28c940; }
-  .demo-header span { font-size: 12px; color: var(--text-3); margin-left: 4px; }
-  .demo-body { padding: 0; }
-  .demo-body iframe { width: 100%; height: 680px; border: none; background: var(--bg); }
+/* ── HERO ── */
+.hero {
+  padding: 140px 24px 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+  width: 800px; height: 600px;
+  background: radial-gradient(ellipse, rgba(255,0,80,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--accent-2);
+  background: var(--accent-soft); border: 1px solid rgba(255,0,80,0.25);
+  padding: 4px 12px; border-radius: 999px; margin-bottom: 24px;
+}
+.hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+.hero h1 {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -1px;
+  margin-bottom: 20px;
+}
+.hero h1 .grad {
+  background: linear-gradient(135deg, #ff0050, #ff6b6b, #ffb347);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero p {
+  font-size: 18px; color: var(--text-2);
+  max-width: 520px; margin: 0 auto 36px;
+  line-height: 1.7;
+}
+.hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px; border-radius: 10px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; border: none;
+  text-decoration: none; transition: all .15s;
+}
+.btn-primary { background: linear-gradient(135deg, #ff0050, #ff6b6b); color: #fff; }
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border-strong); }
+.btn-secondary:hover { border-color: #555; transform: translateY(-1px); }
 
-  /* install */
-  .install-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; counter-reset: step; }
-  .install-step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; position: relative; counter-increment: step; }
-  .install-step::before { content: counter(step); display: block; font-size: 28px; font-weight: 800; color: var(--accent); margin-bottom: 8px; }
-  .install-step h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-  .install-step p { font-size: 13px; color: var(--text-2); }
+/* ── LIVE PREVIEW ── */
+.live-preview {
+  max-width: 800px; margin: 0 auto; padding: 0 24px 80px;
+}
+.preview-frame {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+}
+.preview-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.r { background: #ff5f57; }
+.dot.y { background: #ffbd2e; }
+.dot.g { background: #28c940; }
+.preview-bar span { margin-left: 8px; font-size: 12px; color: var(--text-3); }
+.preview-content { padding: 24px; }
+.preview-danmu-list { display: flex; flex-direction: column; gap: 8px; }
+.danmu-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: 8px; font-size: 13px;
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--text-2);
+}
+.danmu-item.filtered {
+  border-color: rgba(255,0,80,0.35);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+.danmu-item.filtered .danmu-tag {
+  background: rgba(255,0,80,0.2); color: var(--accent-2);
+}
+.danmu-item.pass { border-color: rgba(0,210,106,0.2); background: rgba(0,210,106,0.05); color: var(--text-2); }
+.danmu-item.pass .danmu-tag { background: rgba(0,210,106,0.15); color: var(--success); }
+.danmu-tag {
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 4px; flex: 0 0 auto; margin-left: 10px;
+}
 
-  /* footer */
-  footer { text-align: center; padding: 32px 24px; font-size: 12px; color: var(--text-3); border-top: 1px solid var(--border); }
+/* ── FEATURES ── */
+.features {
+  padding: 80px 24px;
+  max-width: 1080px; margin: 0 auto;
+}
+.features h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+.features .sub { text-align: center; color: var(--text-2); font-size: 15px; margin-bottom: 48px; }
+.feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.feat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  transition: border-color .2s;
+}
+.feat-card:hover { border-color: var(--border-strong); }
+.feat-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: grid; place-items: center;
+  margin-bottom: 14px;
+  font-size: 18px;
+}
+.feat-icon.red    { background: var(--accent-soft); color: var(--accent-2); }
+.feat-icon.green  { background: rgba(0,210,106,0.12); color: var(--success); }
+.feat-icon.blue   { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.feat-icon.purple { background: rgba(139,92,246,0.12); color: #a78bfa; }
+.feat-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.feat-card p { font-size: 13px; color: var(--text-2); line-height: 1.6; }
 
-  @media (max-width: 600px) {
-    .hero h1 { font-size: 28px; }
-    nav .nav-links { display: none; }
-  }
+/* ── WORKFLOW ── */
+.workflow {
+  padding: 80px 24px;
+  max-width: 800px; margin: 0 auto;
+}
+.workflow h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+.workflow .sub { text-align: center; color: var(--text-2); font-size: 15px; margin-bottom: 48px; }
+.steps { display: flex; flex-direction: column; gap: 0; }
+.step {
+  display: flex; gap: 20px; align-items: flex-start;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+}
+.step:last-child { border-bottom: none; }
+.step-num {
+  flex: 0 0 36px; height: 36px;
+  background: linear-gradient(135deg, #ff0050, #ff6b6b);
+  border-radius: 10px;
+  display: grid; place-items: center;
+  font-size: 14px; font-weight: 800; color: #fff;
+}
+.step-body h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.step-body p { font-size: 14px; color: var(--text-2); line-height: 1.6; }
+
+/* ── DEMO IFRAME ── */
+.demo {
+  padding: 80px 24px;
+  max-width: 1080px; margin: 0 auto;
+}
+.demo h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+.demo .sub { text-align: center; color: var(--text-2); font-size: 15px; margin-bottom: 32px; }
+.demo-frame {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.4);
+}
+.demo-frame iframe { width: 100%; height: 720px; border: none; background: var(--bg); }
+
+/* ── INSTALL ── */
+.install {
+  padding: 80px 24px;
+  max-width: 900px; margin: 0 auto;
+}
+.install h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+.install .sub { text-align: center; color: var(--text-2); font-size: 15px; margin-bottom: 40px; }
+.install-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.inst-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+}
+.inst-card::before {
+  content: attr(data-step);
+  position: absolute; top: -8px; left: 16px;
+  background: linear-gradient(135deg, #ff0050, #ff6b6b);
+  color: #fff; font-size: 11px; font-weight: 800;
+  padding: 2px 8px; border-radius: 6px;
+}
+.inst-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; margin-top: 4px; }
+.inst-card p { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 40px 24px;
+  font-size: 12px; color: var(--text-3);
+  border-top: 1px solid var(--border);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .hero { padding: 120px 20px 60px; }
+  .hero h1 { font-size: 32px; }
+  .feat-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo">
-    <div class="logo-icon">抖</div>
-    <span>抖音净化器</span>
-  </div>
-  <div class="nav-links">
-    <a href="#features">功能</a>
-    <a href="#demo">在线体验</a>
-    <a href="#install">安装</a>
-  </div>
-  <a href="https://github.com/your-username/douyin-purifier" class="btn-install" target="_blank" rel="noopener">GitHub</a>
-</nav>
-
+<!-- HERO -->
 <section class="hero">
-  <span class="badge">Chrome 扩展 · Manifest V3</span>
-  <h1>用正则精确过滤<span>弹幕</span></h1>
-  <p>输入关键词或正则表达式，实时隐藏抖音网页版中的广告、推广、抽奖等不想看的弹幕。内置智能生成器，一键从弹幕样例推导出匹配规则。</p>
+  <div class="hero-badge">Chrome 扩展 · Manifest V3</div>
+  <h1>让不想看的弹幕<br><span class="grad">消失不见</span></h1>
+  <p>输入关键词或正则表达式，实时过滤抖音网页版弹幕。<br>内置智能生成器，从弹幕样例一键推导出精确匹配规则。</p>
   <div class="hero-actions">
-    <a href="#install" class="btn btn-primary">安装扩展</a>
-    <a href="#demo" class="btn btn-secondary">在线体验生成器</a>
+    <a href="#install" class="btn btn-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      安装扩展
+    </a>
+    <a href="#demo" class="btn btn-secondary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      在线体验
+    </a>
   </div>
 </section>
 
-<section id="features">
-  <h2>功能</h2>
-  <p class="subtitle">简单配置，实时生效</p>
-  <div class="features-grid">
-    <div class="feature-card">
+<!-- LIVE PREVIEW ANIMATION -->
+<section class="live-preview">
+  <div class="preview-frame">
+    <div class="preview-bar">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <span>douyin.com — 弹幕过滤预览</span>
+    </div>
+    <div class="preview-content">
+      <div class="preview-danmu-list" id="previewDanmu">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <h2>核心能力</h2>
+  <p class="sub">简单配置，立即生效</p>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon red">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
       <h3>实时过滤</h3>
-      <p>MutationObserver 监听新增弹幕，滚动加载的内容即时处理，无需刷新页面。</p>
+      <p>MutationObserver 监听 DOM 变化，滚动加载的弹幕即时过滤，无需刷新页面。</p>
     </div>
-    <div class="feature-card">
-      <h3>灵活的正则</h3>
-      <p>普通文本自动按不区分大小写匹配，也支持 <code>/pattern/flags</code> 完整写法，g、i 等标志均可。</p>
+    <div class="feat-card">
+      <div class="feat-icon green">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="7" x2="17" y2="17"/><line x1="17" y1="7" x2="7" y2="17"/></svg>
+      </div>
+      <h3>智能正则生成</h3>
+      <p>输入若干条正向/反向弹幕样例，自动生成推荐屏蔽词和合并正则表达式，省去手写之苦。</p>
     </div>
-    <div class="feature-card">
-      <h3>过滤预览</h3>
-      <p>弹窗内实时展示会被过滤的弹幕，全文完整展示且重复内容自动去重。</p>
+    <div class="feat-card">
+      <div class="feat-icon blue">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <h3>预览去重</h3>
+      <p>弹窗内实时展示会被过滤的弹幕，全文完整呈现且相同内容自动合并，一眼看清过滤效果。</p>
     </div>
-    <div class="feature-card">
+    <div class="feat-card">
+      <div class="feat-icon purple">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </div>
       <h3>设置同步</h3>
-      <p>通过 chrome.storage.sync 在标签页与设备间自动同步，换电脑也能保持一致。</p>
+      <p>通过 chrome.storage.sync 在标签页与设备间自动同步，换电脑也能保持相同的过滤规则。</p>
     </div>
-    <div class="feature-card">
-      <h3>智能生成器</h3>
-      <p>输入若干条正向/反向弹幕样例，自动生成推荐屏蔽词和合并正则，省去手写之苦。</p>
+    <div class="feat-card">
+      <div class="feat-icon red">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      </div>
+      <h3>灵活的正则语法</h3>
+      <p>支持普通文本自动匹配，也支持 <code>/pattern/g</code> 完整写法，g、i 等标志均可指定。</p>
     </div>
-    <div class="feature-card">
+    <div class="feat-card">
+      <div class="feat-icon green">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
       <h3>SPA 适配</h3>
       <p>抖音单页应用路由切换时自动重建监听器并重新扫描，不会漏掉任何弹幕。</p>
     </div>
   </div>
 </section>
 
-<section id="demo">
-  <h2>在线体验</h2>
-  <p class="subtitle">下方是正则生成器的完整交互界面，可本地离线使用，无需安装扩展</p>
-  <div class="demo-wrap">
-    <div class="demo-header">
-      <span class="demo-dot r"></span>
-      <span class="demo-dot y"></span>
-      <span class="demo-dot g"></span>
-      <span>弹幕屏蔽正则生成器</span>
+<!-- WORKFLOW -->
+<section class="workflow">
+  <h2>使用方法</h2>
+  <p class="sub">两种方式过滤弹幕，按需选择</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>直接输入正则</h3>
+        <p>点击浏览器工具栏图标打开弹窗，在输入框中填写正则表达式，如 <code>广告|推广|抽奖</code>，点击保存即可立即生效。</p>
+      </div>
     </div>
-    <div class="demo-body">
-      <iframe src="generator.html" title="弹幕屏蔽正则生成器"></iframe>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>使用生成器（推荐）</h3>
+        <p>点击「生成正则」按钮，在弹窗中填入正向弹幕（要屏蔽的）和反向弹幕（白名单），工具自动推荐常见子串，点击字符确认屏蔽词后生成精确正则。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>预览与验证</h3>
+        <p>生成器右侧实时显示测试弹幕的匹配结果，绿色为通过，红色为屏蔽，确认无误后点击「填入抖音净化器设置」直接写入扩展配置。</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section id="install">
+<!-- DEMO -->
+<section class="demo" id="demo">
+  <h2>在线体验</h2>
+  <p class="sub">下方是完整的正则生成器，可直接在浏览器中使用</p>
+  <div class="demo-frame">
+    <iframe src="generator.html" title="弹幕屏蔽正则生成器"></iframe>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section class="install" id="install">
   <h2>安装</h2>
-  <p class="subtitle">从源码加载为未打包扩展，适合开发者和高级用户</p>
-  <div class="install-steps">
-    <div class="install-step">
+  <p class="sub">从源码加载为未打包扩展</p>
+  <div class="install-grid">
+    <div class="inst-card" data-step="01">
       <h3>打开扩展管理页</h3>
-      <p>访问 chrome://extensions（Edge 用户访问 edge://extensions）</p>
+      <p>访问 chrome://extensions<br>（Edge 用户访问 edge://extensions）</p>
     </div>
-    <div class="install-step">
+    <div class="inst-card" data-step="02">
       <h3>开启开发者模式</h3>
       <p>打开页面右上角的「开发者模式」开关</p>
     </div>
-    <div class="install-step">
-      <h3>加载扩展</h3>
+    <div class="inst-card" data-step="03">
+      <h3>加载扩展程序</h3>
       <p>点击「加载已解压的扩展程序」，选择本项目目录</p>
     </div>
-    <div class="install-step">
-      <h3>开始使用</h3>
-      <p>打开抖音网页版，点击工具栏图标即可开始过滤弹幕</p>
+    <div class="inst-card" data-step="04">
+      <h3>开始过滤</h3>
+      <p>打开抖音网页版，点击工具栏图标配置你的过滤规则</p>
     </div>
   </div>
 </section>
 
 <footer>
-  抖音净化器 · 开源于 GitHub · 仅供学习交流使用
+  <p>抖音净化器 · 开源于 GitHub · 仅供学习交流使用</p>
 </footer>
 
+<script>
+// Hero animated preview
+const DANMU = [
+  { text: '主播唱得真好听', filter: false },
+  { text: '广告了解一下点链接', filter: true },
+  { text: '哈哈哈哈哈太好笑了', filter: false },
+  { text: '扫码加微信领福利', filter: true },
+  { text: '第一！', filter: false },
+  { text: '抽奖啦抽奖啦快来看', filter: true },
+];
+const container = document.getElementById('previewDanmu');
+let idx = 0;
+function render() {
+  container.innerHTML = '';
+  const start = idx;
+  for (let i = 0; i < 6; i++) {
+    const d = DANMU[(start + i) % DANMU.length];
+    const el = document.createElement('div');
+    el.className = 'danmu-item' + (d.filter ? ' filtered' : ' pass');
+    el.innerHTML = `<span>${d.text}</span><span class="danmu-tag">${d.filter ? '屏蔽' : '通过'}</span>`;
+    container.appendChild(el);
+  }
+  idx = (idx + 1) % DANMU.length;
+}
+render();
+setInterval(render, 1800);
+</script>
 </body>
 </html>
