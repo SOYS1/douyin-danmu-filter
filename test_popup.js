@@ -65,6 +65,7 @@ register('danmu-toggle', { checked: true });
 register('danmu-regex');
 register('btn-save');
 register('btn-reset');
+register('btn-gen-regex');
 
 const document = {
   getElementById(id) { return elements[id]; },

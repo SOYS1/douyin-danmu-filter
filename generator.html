@@ -1,0 +1,174 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>弹幕屏蔽正则生成器</title>
+<link rel="stylesheet" href="generator_styles.css">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface-2: #141414;
+    --border: #2a2a2a;
+    --border-strong: #333;
+    --text: #f1f1f1;
+    --text-2: #888;
+    --text-3: #555;
+    --accent: #ff0050;
+    --accent-2: #ff6b6b;
+    --accent-soft: rgba(255,0,80,0.1);
+    --danger: #ff6b6b;
+    --danger-soft: rgba(255,107,107,0.08);
+    --success: #00d26a;
+    --success-soft: rgba(0,210,106,0.08);
+  }
+  body { background: var(--bg); color: var(--text); }
+  textarea { background: var(--surface-2); color: var(--text); }
+  .btn.primary { background: linear-gradient(135deg, #ff0050, #ff6b6b); color: #fff; border-color: transparent; }
+  .btn.primary:hover { opacity: 0.88; }
+  .btn.ghost { background: var(--surface); color: var(--text-2); border-color: var(--border-strong); }
+  .btn.ghost:hover { color: var(--text); border-color: #555; }
+  .icopy { background: var(--surface); color: var(--text-2); border-color: var(--border-strong); }
+  .icopy:hover { color: var(--accent-2); border-color: var(--accent); background: var(--accent-soft); }
+  .fmt-toggle button.active { background: var(--accent); color: #fff; }
+  .seg.active { background: var(--accent); color: #fff; }
+  .char { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .char:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .char.sel { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .char.x { color: var(--text-3); }
+  .trow.blocked { background: var(--danger-soft); }
+  .trow.passed { background: var(--success-soft); }
+  .rl { background: var(--surface-2); }
+  .perrow { background: var(--surface-2); }
+  .toast { background: #1f2530; color: #fff; }
+  .steps a.active { color: var(--accent-2); background: var(--accent-soft); }
+  .section-head .stepnum { color: var(--accent-2); background: var(--accent-soft); }
+  .chip { background: var(--surface); border-color: var(--border); color: var(--text); }
+  .chip-suggest .chip { background: var(--surface-2); border-color: var(--border); color: var(--text-2); }
+  .row-ctrl .seg.active { background: var(--accent); color: #fff; }
+  .js-fill-config { background: linear-gradient(135deg, #00d26a, #00a854); color: #fff; border: none; }
+  .js-fill-config:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </span>
+    <h1>弹幕屏蔽正则生成器</h1>
+    <span class="vbadge">V2</span>
+  </div>
+  <nav class="steps">
+    <a href="#step-input">01 输入</a>
+    <a href="#step-confirm">02 确认</a>
+    <a href="#step-regex">03 正则·测试</a>
+  </nav>
+  <div class="topbar-actions">
+    <button id="btnExample" class="btn ghost sm">载入示例</button>
+    <button id="btnClear" class="btn ghost sm">清空</button>
+  </div>
+</header>
+
+<main>
+  <section id="step-input" class="section">
+    <div class="section-head">
+      <span class="stepnum">01</span>
+      <h2>输入弹幕</h2>
+      <p class="section-sub">正向是要屏蔽的，反向是白名单（允许通过）；每行一条，支持中英文数字符号混合</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel">
+        <label>正向弹幕（要屏蔽）<span class="count" id="posCount">0 条</span></label>
+        <textarea id="posInput" placeholder="每行一条正向弹幕..."></textarea>
+      </div>
+      <div class="panel">
+        <label>反向弹幕（白名单）<span class="count" id="negCount">0 条</span></label>
+        <textarea id="negInput" placeholder="每行一条白名单弹幕..."></textarea>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="btnLoad" class="btn primary">载入弹幕</button>
+      <button id="btnLoadExample" class="btn ghost">载入示例</button>
+      <button id="btnClearAll" class="btn ghost">清空</button>
+      <div class="flags-inline">
+        <label class="chk"><input type="checkbox" id="flagG" checked> 复制带 g 标志</label>
+        <label class="chk"><input type="checkbox" id="flagI"> 忽略大小写 (i)</label>
+      </div>
+    </div>
+  </section>
+
+  <section id="step-confirm" class="section">
+    <div class="section-head">
+      <span class="stepnum">02</span>
+      <h2>确认屏蔽词</h2>
+      <p class="section-sub">点击字符选择屏蔽词，跨弹幕实时同步高亮；自动识别仅作辅助，以点击确认为准</p>
+    </div>
+    <div class="empty" id="confirmEmpty">载入弹幕后在此确认屏蔽词</div>
+    <div id="confirmWork" hidden>
+      <div class="chips-row">
+        <span class="chips-label">屏蔽词</span>
+        <div id="shieldChips" class="chips"></div>
+        <div class="chips-actions"><button id="btnUndo" class="btn ghost xs">撤销</button></div>
+      </div>
+      <div class="chips-row">
+        <span class="chips-label">建议</span>
+        <div id="suggestChips" class="chips chips-suggest"></div>
+      </div>
+      <div id="danmakuRows" class="rows"></div>
+    </div>
+  </section>
+
+  <section id="step-regex" class="section">
+    <div class="section-head">
+      <span class="stepnum">03</span>
+      <h2>正则 · 测试</h2>
+      <p class="section-sub">合并正则可直接复制使用；右侧实时测试屏蔽效果，绿色为通过，红色为屏蔽</p>
+    </div>
+    <div class="grid-2">
+      <div class="panel regex-panel">
+        <div class="panel-head">
+          <h3>正向屏蔽（合并）</h3>
+          <div class="fmt-toggle">
+            <button data-fmt="js" class="seg active">JS 字面量</button>
+            <button data-fmt="pattern" class="seg">纯模式</button>
+          </div>
+        </div>
+        <div class="regex-block">
+          <div class="rl"><span class="rl-label">模糊整行</span><code id="rgxFull" class="code"></code><button class="icopy" data-copy-target="rgxFull">复制</button></div>
+          <div class="rl"><span class="rl-label">包含模式</span><code id="rgxPattern" class="code"></code><button class="icopy" data-copy-target="rgxPattern">复制</button></div>
+          <div class="rl"><span class="rl-label">关键词</span><span id="rgxKeywords" class="kwlist"></span><button class="icopy" data-copy-target="rgxKeywords">复制</button></div>
+        </div>
+        <div class="panel-head"><h3>反向白名单（精确）</h3></div>
+        <div class="regex-block">
+          <div class="rl"><span class="rl-label">白名单</span><code id="rgxAllow" class="code"></code><button class="icopy" data-copy-target="rgxAllow">复制</button></div>
+          <div class="rl"><span class="rl-label">已排除</span><span id="allowExtra" class="kwlist muted"></span></div>
+        </div>
+        <div class="panel-head"><h3>每条弹幕精确正则</h3></div>
+        <div id="perList" class="perlist"></div>
+      </div>
+      <div class="panel test-panel">
+        <div class="panel-head"><h3>实时测试</h3></div>
+        <textarea id="testInput" placeholder="每行一条测试弹幕，输入即实时匹配…"></textarea>
+        <div class="test-summary" id="testSummary"></div>
+        <div id="testResults" class="test-results"></div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="btnCopyAll" class="btn primary">复制全部正则</button>
+      <button id="btnCopyBlock" class="btn ghost">复制正向</button>
+      <button id="btnCopyAllow" class="btn ghost">复制白名单</button>
+      <button id="btnFillConfig" class="btn js-fill-config">填入抖音净化器设置</button>
+    </div>
+  </section>
+</main>
+
+<footer>屏蔽词识别为辅助，最终以点击确认为准 · 支持中文英文数字符号混合 · 特殊弹幕可选仅首个 / 全部 / 排除</footer>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="core.js"></script>
+<script src="generator_app.js"></script>
+</body>
+</html>

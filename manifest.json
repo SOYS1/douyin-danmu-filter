@@ -3,15 +3,22 @@
   "name": "抖音净化器",
   "version": "2.1.0",
   "description": "按正则过滤抖音网页版弹幕。",
-  "permissions": ["storage", "activeTab"],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
   "action": {
     "default_title": "抖音净化器设置",
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["*://*.douyin.com/*"],
-      "js": ["content.js"],
+      "matches": [
+        "*://*.douyin.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ]

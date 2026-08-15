@@ -278,6 +278,23 @@ function resetSettings() {
   saveSettings();
 }
 
+// 监听生成器写入的设置，自动回填到输入框
+chrome.storage.onChanged.addListener(function(changes, area) {
+  if (area !== "sync" || !changes.douyinFilterConfig) return;
+  var cfg = changes.douyinFilterConfig.newValue;
+  if (!cfg || !cfg.danmuRegex) return;
+  var input = document.getElementById("danmu-regex");
+  if (!input) return;
+  input.value = cfg.danmuRegex;
+  input.classList.remove("invalid");
+  updatePreview();
+});
+
+// 打开正则生成器页面
+document.getElementById("btn-gen-regex").addEventListener("click", function() {
+  chrome.tabs.create({ url: chrome.runtime.getURL("generator.html") });
+});
+
 document.getElementById("btn-save").addEventListener("click", saveSettings);
 document.getElementById("btn-reset").addEventListener("click", resetSettings);
 document.getElementById("danmu-regex").addEventListener("input", updatePreview);
