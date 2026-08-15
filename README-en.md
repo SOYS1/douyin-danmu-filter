@@ -2,11 +2,13 @@
 
 A Chrome extension (Manifest V3) that filters danmaku comments on the Douyin web player using regular expressions. Filtered comments are hidden in real time, and changes take effect immediately after saving. Settings are synced across tabs and devices through `chrome.storage.sync`.
 
+[中文](README.md)
+
 ## Features
 
 - Real-time filtering: a `MutationObserver` watches newly added DOM nodes, so comments loaded during infinite scrolling are handled as soon as they appear
 - Regex rules: plain text is matched case-insensitively, and full `/pattern/flags` syntax is also supported
-- Preview: the popup shows which comments would be filtered; it prefers real comments from the current page and falls back to sample comments when no page data is available
+- Preview: the popup shows which comments would be filtered — **full text with no truncation, duplicate comments merged**; it prefers real comments from the current page and falls back to sample comments when no page data is available
 - Status and stats: shows how many comments have been filtered on the current page, with a master switch and a separate danmaku switch
 - Settings sync: saved settings apply immediately, and sync automatically to other open Douyin tabs and other devices on the same account
 - SPA support: the observer is recreated and the page rescanned when Douyin navigates to a new route
@@ -22,7 +24,7 @@ A Chrome extension (Manifest V3) that filters danmaku comments on the Douyin web
 | `popup.js` | Popup logic for loading, validating, and saving settings plus preview rendering |
 | `generator.html` | Regex generator page (dark/light theme support) |
 | `generator_app.js` | Generator UI interaction logic |
-| `generator_styles.css` | Generator base styles |
+| `generator_styles.css` | Generator styles (dark theme) |
 | `core.js` | Shared core logic (regex compilation, candidate suggestions, match testing) |
 
 ## Installation
@@ -64,16 +66,6 @@ A Chrome extension (Manifest V3) that filters danmaku comments on the Douyin web
 - Supported flags in full syntax: `d`, `g`, `i`, `m`, `s`, `u`, `v`, `y`
 - Invalid regular expressions never match anything and do not affect other filtering behavior
 
-## Tests
-
-The tests use only Node.js built-in modules and require no dependencies:
-
-```powershell
-node test_content.js
-node test_popup.js
-```
-
-On success they print `FILTER_TEST_OK` and `POPUP_TEST_OK` respectively.
 
 ## Permissions
 

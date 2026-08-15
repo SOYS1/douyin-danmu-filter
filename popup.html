@@ -192,7 +192,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 6px;
-      max-height: 184px;
+      max-height: 260px;
       overflow-y: auto;
     }
     .preview-empty {
@@ -205,10 +205,8 @@
     }
     .preview-item {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      align-items: flex-start;
       gap: 6px;
-      min-width: 0;
       padding: 6px 8px;
       background: #0f0f0f;
       border: 1px solid #2a2a2a;
@@ -222,10 +220,11 @@
       color: #f1f1f1;
     }
     .preview-text {
+      flex: 1;
       min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.4;
     }
     .preview-badge {
       flex: 0 0 auto;

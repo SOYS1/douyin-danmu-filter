@@ -241,20 +241,22 @@ function updatePreview() {
 
   // 优先展示抖音页面上的真实弹幕
   if (pageDanmu.length > 0) {
-    const matched = pageDanmu.filter((text) => testPreview(pattern, text));
+    // 去重：完全一致的弹幕只显示一次
+    const matchedUnique = [...new Set(pageDanmu.filter((text) => testPreview(pattern, text)))];
     previewTitle.textContent = "将过滤的弹幕";
-    if (matched.length === 0) {
+    if (matchedUnique.length === 0) {
       previewNote.textContent = `页面 ${pageDanmu.length} 条弹幕暂无命中`;
       showPreviewEmpty("当前页面没有会被过滤的弹幕");
     } else {
-      previewNote.textContent = `页面 ${pageDanmu.length} 条弹幕中将过滤 ${matched.length} 条`;
-      renderResults(matched.map((text) => createPreviewItem(text, true)));
+      previewNote.textContent = `页面 ${pageDanmu.length} 条弹幕中将过滤 ${matchedUnique.length} 条`;
+      renderResults(matchedUnique.map((text) => createPreviewItem(text, true)));
     }
     return;
   }
 
   // 没有页面数据时使用示例弹幕展示过滤效果
-  const results = DANMU_PREVIEWS.map((text) => ({
+  // 示例弹幕也去重
+  const results = [...new Set(DANMU_PREVIEWS)].map((text) => ({
     text,
     matched: testPreview(pattern, text),
   }));
